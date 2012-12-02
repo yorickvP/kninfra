@@ -23,3 +23,7 @@ class InvCountMeta(FormMeta):
     tellers = forms.CharField(label="Tellers")
     comments = forms.CharField(label="Opmerkingen",
                     widget=forms.widgets.Textarea(), required=False)
+
+class DateRangeForm(forms.Form):
+    begin = forms.DateField(label="Van", initial=datetime.date.today() - datetime.timedelta(days=60))
+    end = forms.DateField(label="Tot", initial=datetime.date.today())

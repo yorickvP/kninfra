@@ -3,6 +3,7 @@ import locale
 import json
 from cStringIO import StringIO
 import subprocess
+import datetime
 import os.path
 
 from django.http import Http404, HttpResponseRedirect
@@ -18,7 +19,7 @@ from kn import settings
 # from kn.leden.mongo import _id
 # from kn.leden.date import date_to_dt, now
 # from kn.base.http import JsonHttpResponse
-from kn.barco.forms import BarformMeta, InvCountMeta
+from kn.barco.forms import BarformMeta, InvCountMeta, DateRangeForm
 
 settings.DRANK_REPOSITORIES = ['drank6', 'drank7', 'drank8', 'drank9']
 settings.DRANK_REPOS_PATH = '/home/infra/barco/%s/'
@@ -201,3 +202,68 @@ def barco_enterform(request, repos, formname):
             {'fields': template, 'form': form, 'prefill': prefill,
                 'weight_fields': list(weight_fields)},
         context_instance=RequestContext(request))
+
+@login_required
+def barco_gedronken(request, repos):
+    begin = str(datetime.date.today() - datetime.timedelta(days=60))
+    end = str(datetime.date.today())
+    if request.method == 'POST':
+        form = DateRangeForm(request.POST)
+        if form.is_valid():
+            begin = str(form.cleaned_data['begin'])
+            end = str(form.cleaned_data['end'])
+    else:
+        form = DateRangeForm()
+    repopath = settings.DRANK_REPOS_PATH % (repos,)
+    factors = open_rikf_ar(os.path.join(repopath, "factor_catalog.csv"))
+    products = {}
+    product_units = {}
+    for line in open_rikf_ar(os.path.join(repopath, "product_catalog.csv")):
+        products[line[0]] = line[1:]
+        if len(line) == 3:
+            (ml, what) = line[2].split(':')
+            if what not in product_units:
+                product_units[what] = []
+            product_units[what].append((line[0].split('_')[-1], int(ml)))
+    turfjes = {}
+    for fn in os.listdir(os.path.join(repopath, "barforms")):
+        if fn[-4:] != '.csv':
+            continue
+        data = open_rikf_ar(os.path.join(repopath, "barforms", fn))
+        if data[0][0].lower() != 'bar':
+            continue
+        if data[1][1] < begin or data[1][1] >= end:
+            continue
+        print fn
+        for line in data[2:]:
+            if len(line) < 2:
+                continue
+            if line[0] not in turfjes:
+                turfjes[line[0]] = 0
+            turfjes[line[0]] += int(line[1])
+        print data
+    print turfjes
+    mls = {}
+    for product, aantal in turfjes.items():
+        if aantal == 0:
+            continue
+        product = product.split('@')[0]
+        for part in products[product][1:]:
+            (ml, liquor) = part.split(':')
+            if liquor not in mls:
+                mls[liquor] = 0
+            mls[liquor] += int(ml) * aantal
+    print mls
+    result = {}
+    for product, ml in mls.items():
+        res = list()
+        res.append("%d ml" % ml)
+        if product in product_units:
+            for (unit, unitmod) in product_units[product]:
+                res.append("%s %s" % (str(round(float(ml) / unitmod, 1)).replace('.0', ''), unit))
+        result[product] = res
+    print result
+    print product_units
+    return render_to_response("barco/gedronken.html",
+            {'products': result, 'form': form},
+            context_instance=RequestContext(request))

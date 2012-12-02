@@ -11,6 +11,8 @@ from kn.barco import views
 urlpatterns = patterns('',
     url(r'^(?P<repos>[^/]+)/enter/(?P<formname>[^/]+)/$',
         views.barco_enterform, name='barco-enterform'),
+    url(r'^(?P<repos>[^/]+)/gedronken/$',
+        views.barco_gedronken, name='barco-gedronken'),
 
     # legacy:
     url(r'^(?P<repos>[^/]+)/barform/$', redirect_to,

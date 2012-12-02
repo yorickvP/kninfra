@@ -1,0 +1,21 @@
+{% extends "leden/base.html" %}
+{% load base %}
+
+{% block body %}
+<form method="POST">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Toon">
+</form>
+<table>
+        {% for product, units in products.items %}
+        <tr>
+                <td nowrap>{{ product }}</td>
+                {% for unit in units %}
+                <td>{{ unit }}</td>
+                {% endfor %}
+        </tr>
+        {% endfor %}
+</table>
+{{ block.super }}
+{% endblock %}
