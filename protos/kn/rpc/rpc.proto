@@ -1,0 +1,104 @@
+syntax = "proto3";
+package kn;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "kn/rpc/util.proto";
+import "kn/rpc/fin.proto";
+import "kn/rpc/foto.proto";
+import "kn/rpc/mail.proto";
+service Giedo {
+    rpc Sync(google.protobuf.Empty) returns (Success);
+    rpc setpass(UserPass) returns (Success);
+    rpc ping(google.protobuf.Empty) returns (Success);
+    rpc update_site_agenda(google.protobuf.Empty) returns (Success);
+    rpc last_synced(google.protobuf.Empty) returns (google.protobuf.Timestamp);
+
+}
+service Cilia {
+    rpc setpass(UserPass) returns (Success);
+    rpc wolk(WolkChanges) returns (Success);
+    rpc unix(UsersMap) returns (Success);
+
+    rpc fotoadmin_scan_userdirs(google.protobuf.Empty) returns (foto.UserDirs);
+    rpc fotoadmin_remove_moved_fotos(foto.FotoDesc) returns (Success);
+}
+service Daan {
+    rpc postfix(UsersMap) returns (Success);
+    rpc postfix_slm(UsersMap) returns (Success);
+    rpc quassel(QuasselChanges) returns (Success);
+    rpc wiki(WikiChanges) returns (Success);
+    rpc ldap(LdapChanges) returns (Success);
+    rpc setpass(UserPass) returns (Success);
+
+    rpc fotoadmin_create_event(foto.FotoEvent) returns (Success);
+    rpc fotoadmin_move_fotos(foto.FotoDesc) returns (Success);
+    rpc fotoadmin_remove_moved_fotos(foto.FotoDesc) returns (Success);
+}
+service Hans {
+    rpc maillist(MailChanges) returns (Success);
+    rpc get_membership(google.protobuf.Empty) returns (mail.Membership);
+    rpc get_moderated_lists(google.protobuf.Empty) returns (mail.ModeratedLists);
+    rpc set_moderation(mail.Moderation) returns (Success);
+    rpc get_moderator_cookie(mail.List) returns (mail.ModeratorCookie);
+}
+service Moniek {
+    rpc get_account  (fin.AccountQuery) returns (fin.Account);
+    rpc get_debitors (fin.DebitorQuery) returns (fin.Debitors);
+    rpc get_errors   (fin.ErrorQuery) returns (fin.Errors) ;
+    rpc get_years    (fin.YearQuery)  returns (fin.Years);
+    rpc get_gnucash_object(fin.GnucashQuery) returns (fin.GnucashObjects);
+    rpc check_names(fin.Names) returns (fin.CheckNamesResponse);
+}
+message UsersMap {
+        message Groups {
+                repeated string groups = 1;
+        }
+        map<string, Groups> map = 1;
+}
+message UserPass {
+        string user = 1;
+        string pass = 2;
+}
+message WolkChanges {
+    repeated string addUser = 1;
+    repeated string addgroup = 2;
+    message UserGroup {
+        string user = 1;
+        string group = 2;
+    }
+    repeated UserGroup addUserToGroup = 3;
+}
+message QuasselChanges {
+    repeated string add = 1;
+    repeated string remove = 2;
+}
+message WikiChanges {
+    message User {
+        string user = 1;
+        string realname = 2;
+        string email = 3;
+    }
+    repeated User add = 1;
+    repeated string remove = 2;
+    repeated string activate = 3;
+    repeated string deactivate = 4;
+}
+message LdapChanges {
+    message User {
+        string uid = 1;
+        string sn = 2;
+        string cn = 3;
+        string mail = 4;
+    }
+    repeated User upsert = 1;
+    repeated string remove = 2;
+}
+message MailChanges {
+    message Users {
+        repeated string emails = 1;
+    }
+    repeated string create = 1;
+    map<string, Users> add = 2;
+    map<string, Users> remove = 3;
+}

@@ -1,17 +1,9 @@
 from __future__ import absolute_import
 
-import os.path
+import mailman
+from mailman.interfaces.listmanager import IListManager, NoSuchListError
+from zope.component import getUtility
+list_manager = getUtility(IListManager)
+__all__ = ['list_manager', 'NoSuchListError']
 
-from django.conf import settings
 
-from kn.base.runtime import setup_virtual_package
-
-setup_virtual_package(
-    'Mailman',
-    os.path.join(settings.MAILMAN_PATH, 'Mailman')
-)
-
-from Mailman import (Utils, MailList, UserDesc,  # noqa: E402 isort:skip
-                        Errors, mm_cfg)
-
-__all__ = ['Utils', 'MailList', 'UserDesc', 'Errors', 'mm_cfg']

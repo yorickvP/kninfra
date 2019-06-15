@@ -1,0 +1,56 @@
+syntax = "proto3";
+package kn.fin;
+/* util */
+message Year {
+    int32 year = 1;
+}
+/* queries */
+message AccountQuery {
+        string name = 1;
+        string full_name = 2;
+        string account_type = 3;
+}
+message DebitorQuery {}
+message YearQuery {}
+message GnucashQuery {
+    Year year = 1;
+    string handle = 2;
+}
+message ErrorQuery { Year year = 1; }
+message Names {
+    repeated string names = 1;
+}
+
+/* responses */
+
+message Account {/*...*/}
+message Debitors {/*...*/}
+message GnucashObjects {
+    message GnucashObject {
+    /*...*/
+    }
+    repeated GnucashObject objects = 1;
+}
+    
+message Years {
+    repeated Year years = 1;
+}
+message CheckNamesResponse {
+    message MissingUsers {
+        repeated string users = 1;
+    }
+    map<string, MissingUsers> gnucash = 1;
+    map<string, MissingUsers> website = 2;
+}
+message Errors {
+message FinCheck {
+    message Check {
+        string name = 1;
+        string type = 2;
+        string description = 3;
+    }
+    Check check = 1;
+    repeated string objects = 2;
+}
+    repeated FinCheck checks = 1;
+}

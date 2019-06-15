@@ -1,0 +1,29 @@
+
+syntax = "proto3";
+package kn.mail;
+
+message List {
+    string name = 1;
+}
+message ModeratorCookie {
+    string cookie = 1;
+}
+message Moderation {
+    string name = 1;
+    bool moderated = 2;
+}
+message Membership {
+    message Lists {
+        repeated List lists = 1;
+    }
+    map<string, Lists> membership = 1;
+}
+message ModeratedLists {
+    message ModeratedList {
+        string modmode = 1;
+        string real_name = 2;
+        string description = 3;
+        int32 queue = 4;
+    }
+    map<string, ModeratedList> lists = 1;
+}

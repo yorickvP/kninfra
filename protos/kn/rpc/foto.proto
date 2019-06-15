@@ -1,0 +1,22 @@
+syntax = "proto3";
+package kn.foto;
+
+message UserDirs {
+
+message UserDir {
+    string path = 1;
+    string name = 2;
+}
+  repeated UserDir dirs = 1;
+}
+message FotoEvent {
+     string date = 1;
+     string name = 2;
+     string humanname = 3;
+}
+message FotoDesc {
+     /*optional*/ string event = 1;
+     string store = 2;
+     string user = 3;
+     string dir = 4;
+}

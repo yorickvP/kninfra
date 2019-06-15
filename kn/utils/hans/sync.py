@@ -1,13 +1,14 @@
 import logging
 import os.path
 import subprocess
+from collections import defaultdict
 
 from django.conf import settings
 
 from kn.utils.hans import mailman
 
 
-def maillist_get_membership(hans):
+def get_membership():
     ret = {}
     for list_name in mailman.Utils.list_names():
         lst = mailman.MailList.MailList(list_name, lock=False)
@@ -15,19 +16,10 @@ def maillist_get_membership(hans):
     return ret
 
 
-def maillist_apply_changes(hans, changes):
-    mlo = {}
+def apply_changes(changes):
+    mlo = defaultdict(mailman.MailList.MailList)
 
-    def ensure_opened(l):
-        if l in mlo:
-            return True
-        try:
-            mlo[l] = mailman.MailList.MailList(l)
-            return True
-        except mailman.Errors.MMUnknownListError:
-            logging.warn("mailman: could not open %s" % l)
-        return False
-    for name, humanName in changes['create']:
+    for name in changes['create']:
         newlist = os.path.join(settings.MAILMAN_PATH, 'bin/newlist')
         ret = subprocess.call([
             newlist,
@@ -40,7 +32,6 @@ def maillist_apply_changes(hans, changes):
             continue
         # Our custom settings
         # from: http://karpenoktem.com/wiki/WebCie:Mailinglist
-        ensure_opened(name)
         ml = mlo[name]
         ml.send_reminders = 0
         ml.send_welcome_msg = False
@@ -54,22 +45,24 @@ def maillist_apply_changes(hans, changes):
         ml.archive_private = 1
         ml.from_is_list = 1
     try:
-        for l in changes['add']:
-            if not ensure_opened(l):
-                continue
-            for em in changes['add'][l]:
-                pw = mailman.Utils.MakeRandomPassword()
-                desc = mailman.UserDesc.UserDesc(em, '', pw, False)
-                mlo[l].ApprovedAddMember(desc, False, False)
-        for l in changes['remove']:
-            if not ensure_opened(l):
-                continue
-            for em in changes['remove'][l]:
-                mlo[l].ApprovedDeleteMember(
-                    em,
-                    admin_notif=False,
-                    userack=False
-                )
+        for listname, users in changes.add:
+            try:
+                for email in users.emails:
+                    pw = mailman.Utils.MakeRandomPassword()
+                    desc = mailman.UserDesc.UserDesc(em, '', pw, False)
+                    mlo[listname].ApprovedAddMember(desc, False, False)
+            except MMUnknownListError:
+                logging.warn("mailman: could not open %s" % l)
+        for listname, users in changes.remove:
+            try:
+                for email in users.emails:
+                    mlo[listname].ApprovedDeleteMember(
+                        email,
+                        admin_notif=False,
+                        userack=False
+                    )
+            except MMUnknownListError:
+                logging.warn("mailman: could not open %s" % l)
     finally:
         for ml in mlo.values():
             ml.Save()

@@ -1,0 +1,115 @@
+syntax = "proto3";
+service Giedo {
+    rpc sync() returns (Success) {}
+    rpc setpass(string user, string pass) returns (Success);
+    rpc ping() returns (Success);
+    rpc update_site_agenda() returns (Success);
+    rpc last_synced() returns (Timestamp);
+    
+    rpc fotoadmin_scan_userdirs() returns (repeated UserDir);
+    rpc fotoadmin_create_event(FotoEvent event) returns (Success);
+    rpc fotoadmin_move_fotos(string event, string store, string user, string dir) returns (Success);
+    
+}
+service Cilia {
+    rpc setpass(string user, string pass) returns (Success);
+    rpc wolk(WolkChanges changes) returns (Success);
+    rpc unix(map<string, repeated string> usersmap) returns (Success);
+    rpc fotoadmin_scan_userdirs() returns (repeated UserDir);
+    rpc fotoadmin_remove_moved_fotos(string store, string user, string dir) returns (Success);
+}
+service Daan {
+    rpc postfix(map<string, repeated string> postfixmap) returns (Success);
+    rpc postfix_slm(map<string, repeated string> postfixmap) returns (Success);
+    rpc quassel(Quasselchanges changes) returns (Success);
+    rpc wiki(WikiChanges changes) returns (Success);
+    rpc ldap(Ldapchanges changes) returns (Success);
+    rpc setpass(string user, string pass) returns (Success);
+    rpc fotoadmin_create_event(FotoEvent event) returns (Success);
+    rpc fotoadmin_move_fotos(string event, string store, string user, string dir) returns (Success);
+    rpc fotoadmin_remove_moved_fotos(string store, string user, string dir) returns (Success);
+}
+service Hans {
+    rpc maillist_get_membership() returns (map<string, repeated string>);
+    rpc maillist(MailChanges) returns (Success);
+    rpc maillist_get_moderated_lists() returns (repeated map<string, MailModeratedList>);
+    rpc maillist_set_moderation(string name, bool moderated) returns (Success);
+    rpc maillist_get_moderator_cookie(string name) returns (string);
+}
+service Moniek {
+    rpc fin_get_account(string name, string full_name, string account_type) returns (Any);
+    rpc fin_get_debitors() returns (map<string, sint64>);
+    rpc fin_check_names(repeated string) returns (FinCheckNamesResponse);
+    rpc fin_get_gnucash_object(int32 year, string handle) returns (repeated Any); # or error
+    rpc fin_get_errors(int32 year) returns (repeated FinCheck) ;
+    rpc fin_get_years() returns (repeated int32);
+}
+message Success {
+    
+}
+message WolkChanges {
+    repeated string addUser = 1;
+    repeated string addgroup = 2;
+    message UserGroup {
+        string user = 1;
+        string group = 2;
+    }
+    repeated UserGroup addUserToGroup = 3;
+}
+message UserDir {
+    string path = 1;
+    string name = 2;
+}
+message QuasselChanges {
+    repeated string add = 1;
+    repeated string remove = 2;
+}
+message WikiChanges {
+    message User {
+        string user;
+        string realname;
+        string email;
+    }
+    repeated User add = 1;
+    repeated string remove = 2;
+    repeated string activate = 3;
+    repeated string deactivate = 4;
+}
+message LdapChanges {
+    message User {
+        string uid = 1;
+        string sn = 2;
+        string cn = 3;
+        string mail = 4;
+    }
+    repeated User upsert = 1;
+    repeated string remove = 2;
+}
+message MailChanges {
+    message User {
+        string name = 1;
+        string humanname = 2;
+    }
+    repeated User create = 1;
+    map<string, repeated string> add = 2;
+    map<string, repeated string> remove = 3;
+}
+message MailModeratedList {
+    string modmode = 1;
+    string real_name = 2;
+    string description = 3;
+    int32 queue = 4;
+}
+message FinCheckNamesResponse {
+    map<string, repeated string> gnucash = 1;
+    map<string, repeated string> website = 2;
+}
+message FinCheck {
+    message Check {
+        string name = 1;
+        string type = 2;
+        string description = 3;
+    }
+    Check check = 1;
+    repeated string objects = 2;
+}
