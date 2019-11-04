@@ -72,7 +72,7 @@ in {
         fi
       '';
       serviceConfig = {
-        ExecStart = "${uwsgi-pkg}/bin/uwsgi --json ${uswgi_conf}";
+        ExecStart = "${uwsgi_pkg}/bin/uwsgi --json ${uswgi_conf}";
         # have systemd create and manage /var/lib/kndjango
         StateDirectory = "kndjango";
         # allocate a dynamic user for every run. maximum sandboxing
