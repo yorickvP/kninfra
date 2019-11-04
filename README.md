@@ -149,21 +149,25 @@ aangebracht.  Dit wordt gedaan door vijf verschillende *daemons*
  * **hans** draait als de `list`-gebruiker op *sankhara* en laat giedo
    de mailman e-maillijsten inkijken en aanpassen.  Code: `kn/utils/hans`.
    
-Vagrant
--------
+Development
+-----------
 
-Met [vagrant](https://www.vagrantup.com) is het systeem op je eigen
-computer te testen:
+Met [nix](https://nixos.org/nix/) is het systeem op je eigen computer te testen:
 
- 1. Installeer [vagrant](https://www.vagrantup.com).
+ 1. Installeer [nix](https://nixos.org/nix/) (of vanuit je distro)
  2. Maak een kopie van deze *repository* met [git](https://git-scm.com)
 
         $ git clone https://github.com/karpenoktem/kninfra
 
- 3. Start vagrant:
+ 3. Start een VM
 
         $ cd pad/naar/kninfra
-        $ vagrant up
+        $ nix-build -A vm
            (...)
-        $ vagrant ssh
+        $ ./result/bin/run-vipassana.karpenoktem.nl-vm
+           (andere terminal)
+        $ ./result/bin/ssh
+ 4. Verander dingen
+ 
+        $ nix-build -A vm && ./result/bin/switch-running-vm
 
