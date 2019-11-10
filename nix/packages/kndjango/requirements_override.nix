@@ -47,9 +47,27 @@ self: super: {
       sha256 = "0a013cgzc3bk2c4d40ccpbjm9pqcdhk8ks7knnghdl12d54g4xdm";
     };
   });
-  inherit (pkgs.python37Packages)
+  koert = (python.mkDerivation rec {
+    pname = "koert";
+    version = "20170709-e39c93";
+    buildInputs = [];
+    buildPhase = "true";
+    propagatedBuildInputs = [ self.GitPython ];
+    installPhase = ''
+      mkdir -p $out/lib/${python.__old.python.libPrefix}/site-packages/$pname
+      cp -R ./* $_
+    '';
+    doCheck = false;
+    src = pkgs.fetchFromGitHub {
+      owner = "awesterb";
+      repo = pname;
+      rev = "e39c93f2874f0a8eb6559ef15e1a5fa07d9ae9a5";
+      sha256 = "118n0ygzbykc7ckxj7112g16s3k844kx9d3n9a04ahrqpz8p6y5w";
+    };
+  });
+  inherit (python.__old)
     pymongo six protobuf grpcio
     msgpack html2text unidecode pyx pillow
     markdown pyparsing ldap httplib2 oauth2client google_api_python_client
-    pymysql;
+    pymysql GitPython;
 }

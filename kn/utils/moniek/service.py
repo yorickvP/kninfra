@@ -1,5 +1,5 @@
 import logging
-import os.path
+from pathlib import Path
 
 import grpc
 import msgpack
@@ -12,7 +12,24 @@ from koert.gnucash import tools as koerttools
 from django.conf import settings
 
 from kn.utils.moniek import fin
+import sys, re, os, subprocess
 
+# monkey patch time
+def get_current_version():
+    """
+    Get a string uniquely identifying this version of the software
+    Use the fact that nix assigns a unique hash to this python program and all its dependencies
+    """
+    fname = Path(sys.argv[0] if len(sys.argv[0]) else __file__)
+    if 'GIT_REV' in os.environ:
+        return os.environ['GIT_REV']
+    nix = re.match('^/nix/store/(\w+)-', str(fname.resolve()))
+    if nix:
+        return nix[1]
+    else:
+        return subprocess.check_output(["git", "rev-parse", "HEAD"],
+                                       cwd=str(fname.parent)).decode('ascii').strip()
+koerttools.get_commit_name = get_current_version
 
 class Moniek(moniek_pb2_grpc.MoniekServicer):
 
@@ -110,8 +127,8 @@ class Moniek(moniek_pb2_grpc.MoniekServicer):
             cached_gcf = self._gcf_by_year[year]
             onlyafter = max(cached_gcf.mtime, cached_gcf.yamltime)
         relpath = self.settings['years'][year]
-        path = os.path.join(os.path.dirname(settings.FIN_YAML_PATH), relpath)
-        updated_gcf = koerttools.open_yaml(path, onlyafter=onlyafter)
+        path = Path(settings.FIN_YAML_PATH).parent / relpath
+        updated_gcf = koerttools.open_yaml(str(path), onlyafter=onlyafter)
         if updated_gcf is not None:
             self._gcf_by_year[year] = updated_gcf
             logging.info('loaded new version of fin%s' % (year,))
